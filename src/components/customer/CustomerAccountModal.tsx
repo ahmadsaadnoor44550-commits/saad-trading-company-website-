@@ -109,12 +109,19 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
   // Pending = yellow, Confirmed = blue, Shipped = purple, Delivered = green, Cancelled = red
   const getStatusBadge = (status: OrderStatus) => {
     switch (status) {
+      case 'Awaiting Payment':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-600 animate-ping" />
+            Awaiting Payment
+          </span>
+        );
       case 'Pending':
       case 'Pending Confirmation':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
-            Pending
+            Awaiting Payment
           </span>
         );
       case 'Confirmed':
@@ -166,7 +173,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
     }
 
     const steps = [
-      { key: 'Pending', label: 'Pending' },
+      { key: 'Awaiting Payment', label: 'Awaiting Payment' },
       { key: 'Confirmed', label: 'Confirmed' },
       { key: 'Shipped', label: 'Shipped' },
       { key: 'Delivered', label: 'Delivered' },
@@ -252,7 +259,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
           </button>
         </div>
 
-        {/* Navigation Tabs (Daraz Style) */}
+        {/* Navigation Tabs */}
         <div className="flex bg-slate-100 p-1.5 rounded-2xl text-xs font-semibold gap-1 shrink-0">
           <button
             type="button"
@@ -438,7 +445,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                               Track Details
                             </button>
 
-                            {(order.status === 'Pending' || order.status === 'Pending Confirmation' || order.status === 'Confirmed') && (
+                            {(order.status === 'Awaiting Payment' || order.status === 'Pending' || order.status === 'Pending Confirmation' || order.status === 'Confirmed') && (
                               confirmCancelId === order.id ? (
                                 <div className="flex items-center gap-1.5 bg-red-50 p-1 rounded-xl border border-red-200 animate-fadeIn">
                                   <span className="text-[11px] text-red-700 font-semibold px-1">Cancel order?</span>

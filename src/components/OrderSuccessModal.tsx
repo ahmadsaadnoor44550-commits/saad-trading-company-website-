@@ -11,6 +11,7 @@ import {
   Printer 
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { formatPKR } from '../data/constants';
 import { OrderReceiptModal } from './admin/OrderReceiptModal';
 import { Order } from '../types';
 
@@ -66,14 +67,14 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
         </div>
 
         <div className="space-y-1.5">
-          <span className="inline-block px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold uppercase tracking-wide">
-            ✓ Order Placed & Confirmed Directly
+          <span className="inline-block px-3 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-300 text-xs font-bold uppercase tracking-wide">
+            Order Placed – Awaiting Advance Payment
           </span>
           <h3 className="font-empire text-2xl font-bold text-slate-900">
             Thank You for Shopping with {settings.storeName || 'SAAD TRADING COMPANY'}!
           </h3>
           <p className="text-xs text-slate-600 max-w-sm mx-auto">
-            Your order has been successfully recorded into our database. The owner has been notified and your official sales invoice is ready.
+            Your order is recorded as <strong>Awaiting Payment</strong>. Please send your advance payment using the details below and share the screenshot on WhatsApp so the owner can confirm your order.
           </p>
         </div>
 
@@ -105,6 +106,36 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
           </button>
         </div>
 
+        {/* Advance Payment Account Details */}
+        <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-left space-y-2 text-xs">
+          <div className="flex items-center justify-between border-b border-amber-200/80 pb-2">
+            <span className="font-bold text-amber-900 uppercase tracking-wider text-[11px]">
+              Advance Payment Details
+            </span>
+            {loadedOrder && (
+              <span className="font-black text-slate-900 text-sm">
+                {formatPKR(loadedOrder.totalAmount)}
+              </span>
+            )}
+          </div>
+          <div className="space-y-1 text-[11px] text-slate-700">
+            <div>
+              <strong>Account Title:</strong> {settings.ownerName || 'Ahmad Saad'}
+            </div>
+            <div>
+              <strong>EasyPaisa:</strong> {settings.easyPaisaAccount || settings.whatsappNumber || '0333-0916398'}
+            </div>
+            <div>
+              <strong>JazzCash:</strong> {settings.jazzCashAccount || settings.whatsappNumber || '0333-0916398'}
+            </div>
+            {settings.bankAccountDetails && (
+              <div>
+                <strong>Bank Transfer:</strong> {settings.bankAccountDetails}
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="space-y-2 pt-1">
           {whatsappUrl && (
             <a
@@ -114,7 +145,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
               className="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
             >
               <MessageCircle className="w-4 h-4" />
-              <span>Send Order Details on WhatsApp to Owner</span>
+              <span>Send Payment Screenshot on WhatsApp</span>
             </a>
           )}
 

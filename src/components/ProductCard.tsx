@@ -24,7 +24,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   const isFavorited = isInWishlist(product.id);
   const inStock = product.isAvailable && product.stock > 0;
-  const isLowStock = inStock && product.stock <= 5;
   const currentPrice = product.discountPrice ?? product.price;
 
   let cleanPhone = (settings.whatsappNumber || '03330916398').replace(/[^0-9]/g, '');
@@ -123,17 +122,13 @@ Assalam-o-Alaikum ${storeTitle}! I am interested in purchasing this product. Ple
         </button>
 
         {/* Stock Badge */}
-        <div className="absolute bottom-2.5 left-2.5">
-          {!inStock ? (
+        {!inStock && (
+          <div className="absolute bottom-2.5 left-2.5">
             <span className="px-2 py-0.5 rounded-md bg-red-50 border border-red-200 text-red-700 text-[10px] font-bold">
               Out of Stock
             </span>
-          ) : isLowStock ? (
-            <span className="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-300 text-amber-800 text-[10px] font-bold">
-              Only {product.stock} Left
-            </span>
-          ) : null}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Info Area */}

@@ -196,7 +196,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     </span>
                   </div>
                   <p className="text-[10px] text-slate-500 mt-0.5">
-                    Express courier delivery all over Pakistan. Advance payment required.
+                    All over Pakistan delivery available. Advance payment required.
                   </p>
                 </div>
               </div>
@@ -332,7 +332,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 Payment Type: Advance Payment Only
               </span>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
-                No Cash on Delivery
+                100% Advance Payment
               </span>
             </div>
             <p className="text-[11px] text-slate-600 leading-relaxed">

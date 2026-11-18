@@ -48,6 +48,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
     updateProduct, 
     deleteProduct, 
     updateOrderStatus, 
+    updateOrderDeliveryCharges,
     deleteOrder,
     updateSettings,
     addBusinessCategory,
@@ -87,6 +88,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
   // Printable Order Receipt state
   const [receiptOrder, setReceiptOrder] = useState<Order | null>(null);
 
+  // Manual delivery charge edit state per order
+  const [editingDeliveryOrderId, setEditingDeliveryOrderId] = useState<string | null>(null);
+  const [deliveryChargeInput, setDeliveryChargeInput] = useState<string>('0');
+  const [savingDeliveryCharge, setSavingDeliveryCharge] = useState(false);
+
   // Search & filters
   const [productSearch, setProductSearch] = useState('');
   const [productCatFilter, setProductCatFilter] = useState('All');
@@ -118,7 +124,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
   // Statistics
   const totalProducts = products.length;
   const totalOrders = orders.length;
-  const pendingOrders = orders.filter((o) => o.status === 'Pending Confirmation').length;
+  const pendingOrders = orders.filter((o) => o.status === 'Awaiting Payment' || o.status === 'Pending' || o.status === 'Pending Confirmation').length;
   const confirmedOrders = orders.filter((o) => o.status === 'Confirmed' || o.status === 'Shipped').length;
   const deliveredOrders = orders.filter((o) => o.status === 'Delivered').length;
   const totalRevenue = orders
@@ -139,7 +145,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
       o.customerName.toLowerCase().includes(orderSearch.toLowerCase()) ||
       o.phone.toLowerCase().includes(orderSearch.toLowerCase()) ||
       o.city.toLowerCase().includes(orderSearch.toLowerCase());
-    const matchesStatus = orderStatusFilter === 'All' || o.status === orderStatusFilter;
+    const matchesStatus = orderStatusFilter === 'All' || 
+      (orderStatusFilter === 'Awaiting Payment' 
+        ? (o.status === 'Awaiting Payment' || o.status === 'Pending' || o.status === 'Pending Confirmation') 
+        : o.status === orderStatusFilter);
     return matchesSearch && matchesStatus;
   });
 
@@ -507,10 +516,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
 
           <div className="p-4 rounded-2xl bg-white border border-amber-200 shadow-sm space-y-1">
             <span className="text-[10px] uppercase font-bold text-amber-700 block tracking-wider">
-              Pending Orders
+              Awaiting Payment
             </span>
             <div className="text-xl sm:text-2xl font-black text-amber-800">{pendingOrders}</div>
-            <span className="text-[10px] text-amber-700">Needs WhatsApp Review</span>
+            <span className="text-[10px] text-amber-700">Needs Payment Review</span>
           </div>
 
           <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-1">
@@ -791,7 +800,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
               </div>
 
               <div className="flex items-center gap-1.5 overflow-x-auto py-1">
-                {['All', 'Pending Confirmation', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'].map((st) => (
+                {['All', 'Awaiting Payment', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'].map((st) => (
                   <button
                     key={st}
                     onClick={() => setOrderStatusFilter(st)}
@@ -838,11 +847,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-semibold text-slate-600">Update Status:</span>
                           <select
-                            value={order.status === 'Pending Confirmation' ? 'Pending' : order.status}
+                            value={order.status === 'Pending Confirmation' || order.status === 'Pending' ? 'Awaiting Payment' : order.status}
                             onChange={(e) => updateOrderStatus(order.id, e.target.value as OrderStatus)}
                             className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-amber-600 cursor-pointer"
                           >
-                            <option value="Pending">Pending</option>
+                            <option value="Awaiting Payment">Awaiting Payment</option>
                             <option value="Confirmed">Confirmed</option>
                             <option value="Shipped">Shipped</option>
                             <option value="Delivered">Delivered</option>
@@ -880,10 +889,59 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
                         {order.notes && <div className="text-[11px] text-amber-800 italic">"{order.notes}"</div>}
                       </div>
 
-                      <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                        <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Total</span>
+                      <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Total & Delivery</span>
                         <div className="font-black text-slate-900 text-sm">{formatPKR(order.totalAmount)}</div>
-                        <div className="text-[11px] text-slate-500">Shipping: {formatPKR(order.deliveryCharges)}</div>
+                        {editingDeliveryOrderId === order.id ? (
+                          <div className="flex items-center gap-1.5 pt-1">
+                            <input
+                              type="number"
+                              min={0}
+                              step={50}
+                              value={deliveryChargeInput}
+                              onChange={(e) => setDeliveryChargeInput(e.target.value)}
+                              className="w-20 px-2 py-1 bg-white border border-amber-400 rounded-lg text-xs font-bold text-slate-900 focus:outline-none"
+                              placeholder="Rs."
+                            />
+                            <button
+                              type="button"
+                              disabled={savingDeliveryCharge}
+                              onClick={async () => {
+                                setSavingDeliveryCharge(true);
+                                try {
+                                  await updateOrderDeliveryCharges(order.id, parseInt(deliveryChargeInput) || 0);
+                                  setEditingDeliveryOrderId(null);
+                                } finally {
+                                  setSavingDeliveryCharge(false);
+                                }
+                              }}
+                              className="px-2 py-1 rounded-lg bg-slate-900 text-white text-[10px] font-bold hover:bg-slate-800 cursor-pointer disabled:opacity-50"
+                            >
+                              {savingDeliveryCharge ? '...' : 'Save'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingDeliveryOrderId(null)}
+                              className="px-1.5 py-1 text-[10px] text-slate-500 hover:text-slate-800 cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between gap-2 text-[11px] text-slate-500">
+                            <span>Delivery: <strong className="text-slate-700">{formatPKR(order.deliveryCharges)}</strong></span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingDeliveryOrderId(order.id);
+                                setDeliveryChargeInput(String(order.deliveryCharges || 0));
+                              }}
+                              className="text-[10px] font-bold text-amber-800 hover:underline cursor-pointer"
+                            >
+                              + Edit Delivery
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -1305,10 +1363,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
                 </div>
                 <div>
                   <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">
-                    Delivery Charges & Courier Options (Pakistan)
+                    Delivery Charges & Courier Options (All Over Pakistan Delivery Available)
                   </h4>
                   <p className="text-slate-500">
-                    Control how shipping charges are calculated when customers book orders:
+                    All over Pakistan delivery available. Set a default delivery fee or enter 0 to add delivery charges manually per order.
                   </p>
                 </div>
               </div>
@@ -1329,27 +1387,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:outline-none focus:border-amber-600 font-semibold"
                   />
                   <p className="text-[10px] text-slate-500">
-                    Courier shipping fee added to customer orders (e.g. Rs. 200 or Rs. 250). If you want to give 100% Free Shipping on all products, simply enter 0.
+                    Default courier shipping fee added to customer orders (e.g. Rs. 250). Enter 0 if you manually add delivery charges when a customer places an order.
                   </p>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="font-semibold text-slate-700 flex items-center justify-between">
-                    <span>Free Delivery Threshold (PKR)</span>
-                    <span className="text-[10px] text-emerald-800 font-bold">Currently: Rs. {settingsForm.freeDeliveryThreshold !== undefined ? settingsForm.freeDeliveryThreshold : 5000}</span>
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    step={500}
-                    value={settingsForm.freeDeliveryThreshold !== undefined ? settingsForm.freeDeliveryThreshold : 5000}
-                    onChange={(e) => setSettingsForm({ ...settingsForm, freeDeliveryThreshold: Math.max(0, parseInt(e.target.value) || 0) })}
-                    placeholder="5000"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:outline-none focus:border-amber-600 font-semibold"
-                  />
-                  <p className="text-[10px] text-slate-500">
-                    Orders reaching this amount get Free Delivery automatically across Pakistan. Enter 0 if you don't want an automatic free delivery threshold.
-                  </p>
+                <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200 flex items-center gap-3">
+                  <Truck className="w-5 h-5 text-amber-700 shrink-0" />
+                  <div className="space-y-0.5">
+                    <span className="font-bold text-amber-950 block">All Over Pakistan Delivery Available</span>
+                    <span className="text-[10px] text-amber-900 block">
+                      You can also edit delivery charges individually on each order in the Orders tab.
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

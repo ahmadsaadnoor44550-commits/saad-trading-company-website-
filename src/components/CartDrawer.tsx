@@ -39,10 +39,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
   if (!isOpen) return null;
 
-  const threshold = settings.freeDeliveryThreshold || 5000;
-  const differenceToFree = Math.max(0, threshold - cartSubtotal);
-  const freeDeliveryPercent = Math.min(100, Math.round((cartSubtotal / threshold) * 100));
-
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-sm animate-fadeIn">
       <div className="absolute inset-0" onClick={onClose} />
@@ -74,25 +70,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             </button>
           </div>
 
-          {/* Free Shipping Progress Indicator */}
+          {/* All Over Pakistan Delivery Notice */}
           {cart.length > 0 && (
             <div className="bg-slate-50 px-5 py-3 border-b border-slate-200 text-xs">
-              <div className="flex items-center justify-between text-slate-700 mb-1.5 font-medium">
-                <span className="flex items-center gap-1.5">
-                  <Truck className="w-3.5 h-3.5 text-amber-600" />
-                  {differenceToFree === 0 ? (
-                    <strong className="text-emerald-700">Unlocked FREE Nationwide Delivery!</strong>
-                  ) : (
-                    <>Add <strong className="text-slate-900">{formatPKR(differenceToFree)}</strong> for Free Delivery</>
-                  )}
-                </span>
-                <span className="text-slate-500">{freeDeliveryPercent}%</span>
-              </div>
-              <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                <div 
-                  className="bg-amber-600 h-full rounded-full transition-all duration-300"
-                  style={{ width: `${freeDeliveryPercent}%` }}
-                />
+              <div className="flex items-center gap-2 text-slate-700 font-semibold">
+                <Truck className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <span>All Over Pakistan Delivery Available</span>
               </div>
             </div>
           )}
@@ -188,8 +171,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
                 <div className="flex justify-between text-slate-600">
                   <span>Delivery Charges</span>
-                  <span className={deliveryFee === 0 ? 'text-emerald-700 font-bold' : 'text-slate-900 font-semibold'}>
-                    {deliveryFee === 0 ? 'FREE' : formatPKR(deliveryFee)}
+                  <span className="text-slate-900 font-semibold">
+                    {deliveryFee > 0 ? formatPKR(deliveryFee) : 'Added by Owner if needed'}
                   </span>
                 </div>
                 <div className="border-t border-slate-200 pt-2 flex justify-between text-sm font-bold text-slate-900">
@@ -199,7 +182,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               </div>
 
               <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900">
-                Delivery across Pakistan. Advance payment via EasyPaisa required.Order is comfirmed after payment is verified.
+                All over Pakistan delivery available. Advance payment only via EasyPaisa, JazzCash, or Bank Transfer. Order is confirmed after payment is verified.
               </div>
 
               <div className="space-y-2">

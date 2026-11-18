@@ -187,7 +187,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
             </div>
 
             {/* Customer Cancellation Option */}
-            {(searchedOrder.status === 'Pending Confirmation' || searchedOrder.status === 'Confirmed') && (
+            {(searchedOrder.status === 'Awaiting Payment' || searchedOrder.status === 'Pending' || searchedOrder.status === 'Pending Confirmation' || searchedOrder.status === 'Confirmed') && (
               <div className="pt-2 border-t border-slate-200">
                 {confirmCancel ? (
                   <div className="p-3 rounded-xl bg-red-50 border border-red-200 space-y-2 text-center">

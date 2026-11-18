@@ -59,6 +59,7 @@ interface StoreContextType {
     deliveryMethod?: 'courier' | 'pickup';
   }) => Promise<{ orderId: string; whatsappUrl: string; message: string }>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
+  updateOrderDeliveryCharges: (orderId: string, deliveryCharges: number) => Promise<void>;
   cancelOrder: (orderId: string) => Promise<void>;
   deleteOrder: (orderId: string) => Promise<void>;
   getOrderById: (orderId: string) => Promise<Order | null>;
@@ -361,7 +362,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const cartTotalCount = cart.reduce((count, item) => count + item.quantity, 0);
 
-  const deliveryFee = settings.deliveryFee || 250;
+  const deliveryFee = settings.deliveryFee ?? 250;
 
   const cartFinalTotal = cartSubtotal + deliveryFee;
 
@@ -507,6 +508,30 @@ _Assalam-o-Alaikum SAAD TRADING COMPANY! I have placed this order on your websit
     }
   };
 
+  const updateOrderDeliveryCharges = async (orderId: string, deliveryCharges: number) => {
+    try {
+      const targetOrder = orders.find((o) => o.id === orderId) || customerOrders.find((o) => o.id === orderId);
+      const subtotal = targetOrder ? targetOrder.subtotal : 0;
+      const cleanDelivery = Math.max(0, Math.round(deliveryCharges));
+      const newTotal = subtotal + cleanDelivery;
+      const now = new Date().toISOString();
+      const orderRef = doc(db, 'orders', orderId);
+      await updateDoc(orderRef, {
+        deliveryCharges: cleanDelivery,
+        totalAmount: newTotal,
+        updatedAt: now
+      });
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, deliveryCharges: cleanDelivery, totalAmount: newTotal, updatedAt: now } : o))
+      );
+      setCustomerOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, deliveryCharges: cleanDelivery, totalAmount: newTotal, updatedAt: now } : o))
+      );
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `orders/${orderId}`);
+    }
+  };
+
   const cancelOrder = async (orderId: string) => {
     await updateOrderStatus(orderId, 'Cancelled');
   };
@@ -635,6 +660,7 @@ _Assalam-o-Alaikum SAAD TRADING COMPANY! I have placed this order on your websit
         isInWishlist,
         createOrder,
         updateOrderStatus,
+        updateOrderDeliveryCharges,
         cancelOrder,
         deleteOrder,
         getOrderById,

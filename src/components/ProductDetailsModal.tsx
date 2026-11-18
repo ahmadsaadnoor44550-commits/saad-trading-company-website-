@@ -47,7 +47,6 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   const isFavorited = isInWishlist(product.id);
   const currentPrice = product.discountPrice ?? product.price;
   const inStock = product.isAvailable && product.stock > 0;
-  const isLowStock = inStock && product.stock <= 5;
 
   let cleanPhone = (settings.whatsappNumber || '03330916398').replace(/[^0-9]/g, '');
   if (cleanPhone.startsWith('03')) cleanPhone = '92' + cleanPhone.slice(1);
@@ -198,27 +197,17 @@ Assalam-o-Alaikum ${storeTitle}! I want to order this product. Please share deli
           <div className="p-4 sm:p-8 flex flex-col justify-between space-y-4 sm:space-y-6">
             <div className="space-y-4">
               
-              {/* Category & Stock */}
+              {/* Category */}
               <div className="flex items-center justify-between">
                 <span className="text-xs uppercase font-bold text-amber-700 tracking-wider">
                   {product.category}
                 </span>
 
-                <div>
-                  {!inStock ? (
-                    <span className="px-2.5 py-1 rounded-full bg-red-50 text-red-700 border border-red-200 text-xs font-bold">
-                      Out of Stock
-                    </span>
-                  ) : isLowStock ? (
-                    <span className="px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-300 text-xs font-bold">
-                      Only {product.stock} Units Left
-                    </span>
-                  ) : (
-                    <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
-                      In Stock ({product.stock} available)
-                    </span>
-                  )}
-                </div>
+                {!inStock && (
+                  <span className="px-2.5 py-1 rounded-full bg-red-50 text-red-700 border border-red-200 text-xs font-bold">
+                    Out of Stock
+                  </span>
+                )}
               </div>
 
               {/* Title */}
@@ -304,7 +293,7 @@ Assalam-o-Alaikum ${storeTitle}! I want to order this product. Please share deli
             {/* CTAs */}
             <div className="space-y-3 pt-3 border-t border-slate-100">
               <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900">
-                Payment is arranged directly with the seller on WhatsApp via <strong>EasyPaisa, JazzCash, or Bank Transfer</strong>.
+                Advance payment only via <strong>EasyPaisa, JazzCash, or Bank Transfer</strong>. All over Pakistan delivery available. Order is confirmed after payment screenshot is verified on WhatsApp.
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">

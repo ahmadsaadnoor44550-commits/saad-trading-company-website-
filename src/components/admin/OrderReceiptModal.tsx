@@ -281,7 +281,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({
               )}
               {!settings.easyPaisaAccount && !settings.jazzCashAccount && !settings.bankAccountDetails && (
                 <p className="text-slate-500">
-                  Advance payment via Easypaisa. Your order is confirmed after the payment screenshot is verified by the owner on Whatsapp.
+                  Advance payment via EasyPaisa, JazzCash, or Bank Transfer. Your order is confirmed after the payment screenshot is verified by the owner on WhatsApp.
                 </p>
               )}
             </div>
@@ -295,7 +295,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({
               <div className="flex justify-between py-1 border-b border-slate-100 text-slate-600">
                 <span>Shipping / Delivery:</span>
                 <span className="font-bold text-slate-900">
-                  {order.deliveryCharges > 0 ? formatPKR(order.deliveryCharges) : 'FREE'}
+                  {order.deliveryCharges > 0 ? formatPKR(order.deliveryCharges) : 'Rs. 0'}
                 </span>
               </div>
               <div className="flex justify-between py-2 border-t-2 border-slate-900 text-sm">
