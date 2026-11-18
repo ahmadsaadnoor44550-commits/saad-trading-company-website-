@@ -12,7 +12,7 @@ import {
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { Product, Order, StoreSettings, CartItem, OrderStatus } from '../types';
-import { DEFAULT_STORE_SETTINGS, STORE_NAME, hasLegacyBrandText, sanitizeStoreName, sanitizeBrandText } from '../data/constants';
+import { DEFAULT_STORE_SETTINGS, DEFAULT_CONTACT_NUMBERS, STORE_NAME, hasLegacyBrandText, sanitizeStoreName, sanitizeBrandText, hasWrongPhoneText, sanitizeStorePhone, replaceWrongPhoneText, buildWhatsAppUrl } from '../data/constants';
 import { useAuth } from './AuthContext';
 
 export interface StatusNotice {
@@ -89,8 +89,22 @@ function sanitizeSettingsObject(raw: Partial<StoreSettings>): StoreSettings {
   return {
     ...merged,
     storeName: sanitizeStoreName(merged.storeName),
-    announcement: merged.announcement ? sanitizeBrandText(merged.announcement) : DEFAULT_STORE_SETTINGS.announcement,
-    aboutText: merged.aboutText ? sanitizeBrandText(merged.aboutText) : DEFAULT_STORE_SETTINGS.aboutText,
+    whatsappNumber: sanitizeStorePhone(merged.whatsappNumber, DEFAULT_CONTACT_NUMBERS[0]),
+    whatsappNumber2: sanitizeStorePhone(merged.whatsappNumber2, DEFAULT_CONTACT_NUMBERS[1]),
+    whatsappNumber3: sanitizeStorePhone(merged.whatsappNumber3, DEFAULT_CONTACT_NUMBERS[2]),
+    contactPhone: sanitizeStorePhone(merged.contactPhone, DEFAULT_CONTACT_NUMBERS[0]),
+    announcement: merged.announcement
+      ? replaceWrongPhoneText(sanitizeBrandText(merged.announcement))
+      : DEFAULT_STORE_SETTINGS.announcement,
+    aboutText: merged.aboutText
+      ? replaceWrongPhoneText(sanitizeBrandText(merged.aboutText))
+      : DEFAULT_STORE_SETTINGS.aboutText,
+    paymentInstructions: merged.paymentInstructions
+      ? replaceWrongPhoneText(merged.paymentInstructions)
+      : DEFAULT_STORE_SETTINGS.paymentInstructions,
+    easyPaisaAccount: merged.easyPaisaAccount ? replaceWrongPhoneText(merged.easyPaisaAccount) : merged.easyPaisaAccount,
+    jazzCashAccount: merged.jazzCashAccount ? replaceWrongPhoneText(merged.jazzCashAccount) : merged.jazzCashAccount,
+    bankAccountDetails: merged.bankAccountDetails ? replaceWrongPhoneText(merged.bankAccountDetails) : merged.bankAccountDetails,
   };
 }
 
@@ -114,8 +128,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const k = sessionStorage.key(i);
         if (k && /settings|store/i.test(k)) {
           const val = sessionStorage.getItem(k);
-          if (val && hasLegacyBrandText(val)) {
-            sessionStorage.setItem(k, sanitizeBrandText(val));
+          if (val && (hasLegacyBrandText(val) || hasWrongPhoneText(val))) {
+            sessionStorage.setItem(k, replaceWrongPhoneText(sanitizeBrandText(val)));
           }
         }
       }
@@ -207,13 +221,28 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             console.error(e);
           }
 
-          // One-time Firestore migration: if owner opens and Firestore still holds old brand name, overwrite it permanently
+          // One-time Firestore migration: overwrite legacy brand name, missing 3-number fields, or wrong 3rd phone number in settings/website
           const hasLegacyRemote =
             hasLegacyBrandText(remote.storeName) ||
             hasLegacyBrandText(remote.announcement) ||
             hasLegacyBrandText(remote.aboutText);
+          const missingExtraPhones =
+            !remote.whatsappNumber?.trim() ||
+            !remote.whatsappNumber2?.trim() ||
+            !remote.whatsappNumber3?.trim();
+          const hasWrongPhoneRemote =
+            hasWrongPhoneText(remote.whatsappNumber) ||
+            hasWrongPhoneText(remote.whatsappNumber2) ||
+            hasWrongPhoneText(remote.whatsappNumber3) ||
+            hasWrongPhoneText(remote.contactPhone) ||
+            hasWrongPhoneText(remote.announcement) ||
+            hasWrongPhoneText(remote.aboutText) ||
+            hasWrongPhoneText(remote.paymentInstructions) ||
+            hasWrongPhoneText(remote.easyPaisaAccount) ||
+            hasWrongPhoneText(remote.jazzCashAccount) ||
+            hasWrongPhoneText(remote.bankAccountDetails);
 
-          if (isOwner && hasLegacyRemote && !migratedFirestoreRef.current) {
+          if (isOwner && (hasLegacyRemote || missingExtraPhones || hasWrongPhoneRemote) && !migratedFirestoreRef.current) {
             migratedFirestoreRef.current = true;
             setDoc(
               settingsDocRef,
@@ -221,10 +250,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 storeName: merged.storeName,
                 announcement: merged.announcement,
                 aboutText: merged.aboutText,
+                whatsappNumber: merged.whatsappNumber,
+                whatsappNumber2: merged.whatsappNumber2,
+                whatsappNumber3: merged.whatsappNumber3,
+                contactPhone: merged.contactPhone,
+                paymentInstructions: merged.paymentInstructions,
+                easyPaisaAccount: merged.easyPaisaAccount || '',
+                jazzCashAccount: merged.jazzCashAccount || '',
+                bankAccountDetails: merged.bankAccountDetails || '',
                 updatedAt: new Date().toISOString(),
               },
               { merge: true }
-            ).catch((err) => console.warn('Settings brand migration note:', err));
+            ).catch((err) => console.warn('Settings migration note:', err));
           }
         } else {
           setSettings(DEFAULT_STORE_SETTINGS);
@@ -534,14 +571,8 @@ ${itemsFormatted}
 ─────────────────────
 _Assalam-o-Alaikum ${activeStoreName}! I have placed this order on your website. I am sending the advance payment screenshot here on WhatsApp to confirm my order._`;
 
-    // Clean phone number for WhatsApp link
-    let cleanPhone = (settings.whatsappNumber || '03330916398').replace(/[^0-9]/g, '');
-    if (cleanPhone.startsWith('03')) {
-      cleanPhone = '92' + cleanPhone.slice(1);
-    } else if (!cleanPhone.startsWith('92') && cleanPhone.length === 10) {
-      cleanPhone = '92' + cleanPhone;
-    }
-    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(whatsappMessage)}`;
+    const primaryPhone = settings.whatsappNumber || DEFAULT_CONTACT_NUMBERS[0];
+    const whatsappUrl = buildWhatsAppUrl(primaryPhone, whatsappMessage);
 
     clearCart();
 

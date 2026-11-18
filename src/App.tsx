@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useStore, StoreProvider } from './context/StoreContext';
 import { useAuth, AuthProvider } from './context/AuthContext';
 import { Product } from './types';
-import { formatPKR, STORE_NAME } from './data/constants';
+import { formatPKR, STORE_NAME, getStorePhones, buildWhatsAppUrl, formatTelLink } from './data/constants';
 import { AnnouncementBar } from './components/AnnouncementBar';
 import { Header } from './components/Header';
 import { HeroBanner } from './components/HeroBanner';
@@ -27,7 +27,7 @@ import {
   MessageCircle,
   Bell,
   X as XIcon,
-  CheckCircle2
+  Phone
 } from 'lucide-react';
 
 function StorefrontApp() {
@@ -59,6 +59,7 @@ function StorefrontApp() {
   // Order Success Screen
   const [successOrderId, setSuccessOrderId] = useState<string | null>(null);
   const [successWhatsappUrl, setSuccessWhatsappUrl] = useState<string | null>(null);
+  const [successOrderMessage, setSuccessOrderMessage] = useState<string | null>(null);
 
   // Owner Secret URL Routing: When owner opens website with /admin, #admin, #/admin, or ?admin=true
   useEffect(() => {
@@ -182,8 +183,8 @@ function StorefrontApp() {
     return <AdminDashboard onReturnToStore={() => setViewMode('customer')} />;
   }
 
-  let cleanPhone = (settings.whatsappNumber || '03330916398').replace(/[^0-9]/g, '');
-  if (cleanPhone.startsWith('03')) cleanPhone = '92' + cleanPhone.slice(1);
+  const phones = getStorePhones(settings);
+  const activeStoreName = settings.storeName || STORE_NAME;
 
   return (
     <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans">
@@ -323,15 +324,24 @@ function StorefrontApp() {
                     Open Owner Dashboard to Add Products
                   </button>
                 ) : (
-                  <a
-                    href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Assalam-o-Alaikum ${settings.storeName || STORE_NAME}! I am looking for a mobile display screen/accessory.`)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    <span>Inquire on WhatsApp</span>
-                  </a>
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    {phones.map((phone, idx) => (
+                      <a
+                        key={phone}
+                        href={buildWhatsAppUrl(phone, `Assalam-o-Alaikum ${activeStoreName}! I am looking for a mobile display screen/accessory.`)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-xs shadow-sm transition-all ${
+                          idx === 0
+                            ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                            : 'bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200'
+                        }`}
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>{phone}</span>
+                      </a>
+                    ))}
+                  </div>
                 )
               ) : (
                 <button
@@ -361,18 +371,18 @@ function StorefrontApp() {
           </div>
         )}
 
-        {/* Business WhatsApp & Direct Order Section */}
-        <section className="mt-16 p-8 rounded-3xl bg-slate-50 border border-slate-200 shadow-sm relative">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+        {/* Business WhatsApp & Direct Contact Section */}
+        <section id="contact-section" className="mt-16 p-6 sm:p-8 rounded-3xl bg-slate-50 border border-slate-200 shadow-sm relative">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start lg:items-center">
             <div className="space-y-2">
               <span className="text-[11px] uppercase font-bold text-amber-800 tracking-wider block">
-                Direct WhatsApp Service
+                Direct WhatsApp & Call Support
               </span>
               <h3 className="font-empire text-2xl font-bold text-slate-900 leading-snug">
                 Verified Displays & Screen Replacements
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Connect directly with {settings.storeName || STORE_NAME} on WhatsApp to verify display model compatibility, check bulk wholesale rates, or place express retail orders.
+                Connect directly with {activeStoreName} on WhatsApp or phone to verify display model compatibility, check bulk wholesale rates, or place express retail orders.
               </p>
             </div>
 
@@ -388,25 +398,52 @@ function StorefrontApp() {
               <div className="p-3 rounded-2xl bg-white border border-slate-200 flex items-center gap-3 shadow-sm">
                 <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
                 <div>
-                  <strong className="text-slate-900 block">Easy Payment Discussion</strong>
-                  <span className="text-slate-500">Pay directly via EasyPaisa, JazzCash, or Bank Transfer upon WhatsApp confirmation</span>
+                  <strong className="text-slate-900 block">Advance Payment Verification</strong>
+                  <span className="text-slate-500">Pay via EasyPaisa, JazzCash, or Bank Transfer and share screenshot on WhatsApp</span>
                 </div>
               </div>
             </div>
 
-            <div className="text-center lg:text-right space-y-2">
-              <a
-                href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Assalam-o-Alaikum ${settings.storeName || STORE_NAME}! I am interested in placing an order for mobile screens.`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider shadow-sm transition-all"
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span>Chat with Owner on WhatsApp</span>
-              </a>
-              <p className="text-[11px] text-slate-500">
-                Direct Number: <strong className="text-slate-800">{settings.whatsappNumber || '03330916398'}</strong>
-              </p>
+            <div className="space-y-2.5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                Official {activeStoreName} Numbers
+              </span>
+              <div className="space-y-2">
+                {phones.map((phone, idx) => (
+                  <div
+                    key={phone}
+                    className="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between gap-2 shadow-sm"
+                  >
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                        {idx === 0 ? 'Main Number' : `Contact Line ${idx + 1}`}
+                      </span>
+                      <span className="font-mono font-bold text-sm text-slate-900 block">
+                        {phone}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <a
+                        href={formatTelLink(phone)}
+                        className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-slate-100 hover:bg-amber-50 border border-slate-200 hover:border-amber-300 text-slate-800 text-xs font-bold transition-all"
+                      >
+                        <Phone className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Call</span>
+                      </a>
+                      <a
+                        href={buildWhatsAppUrl(phone, `Assalam-o-Alaikum ${activeStoreName}! I am interested in placing an order for mobile screens.`)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition-all"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>WhatsApp</span>
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -451,16 +488,21 @@ function StorefrontApp() {
       <CheckoutModal
         isOpen={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
-        onSuccess={(orderId, whatsappUrl) => {
+        onSuccess={(orderId, whatsappUrl, orderMessage) => {
           setSuccessOrderId(orderId);
           setSuccessWhatsappUrl(whatsappUrl);
+          setSuccessOrderMessage(orderMessage || null);
         }}
       />
 
       <OrderSuccessModal
         orderId={successOrderId}
         whatsappUrl={successWhatsappUrl}
-        onClose={() => setSuccessOrderId(null)}
+        orderMessage={successOrderMessage}
+        onClose={() => {
+          setSuccessOrderId(null);
+          setSuccessOrderMessage(null);
+        }}
         onTrackOrder={(id) => {
           setTrackingIdToPreload(id);
           setTrackingOpen(true);

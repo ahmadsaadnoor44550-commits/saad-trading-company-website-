@@ -8,16 +8,18 @@ import {
   PackageSearch, 
   ShoppingBag,
   ShieldCheck,
-  Printer 
+  Printer,
+  Phone
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
-import { formatPKR, STORE_NAME } from '../data/constants';
+import { formatPKR, STORE_NAME, getStorePhones, buildWhatsAppUrl, formatTelLink } from '../data/constants';
 import { OrderReceiptModal } from './admin/OrderReceiptModal';
 import { Order } from '../types';
 
 interface OrderSuccessModalProps {
   orderId: string | null;
   whatsappUrl: string | null;
+  orderMessage?: string | null;
   onClose: () => void;
   onTrackOrder: (id: string) => void;
 }
@@ -25,6 +27,7 @@ interface OrderSuccessModalProps {
 export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   orderId,
   whatsappUrl,
+  orderMessage,
   onClose,
   onTrackOrder,
 }) => {
@@ -123,10 +126,10 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
               <strong>Account Title:</strong> {settings.ownerName || 'Ahmad Saad'}
             </div>
             <div>
-              <strong>EasyPaisa:</strong> {settings.easyPaisaAccount || settings.whatsappNumber || '0333-0916398'}
+              <strong>EasyPaisa:</strong> {settings.easyPaisaAccount || getStorePhones(settings)[0]}
             </div>
             <div>
-              <strong>JazzCash:</strong> {settings.jazzCashAccount || settings.whatsappNumber || '0333-0916398'}
+              <strong>JazzCash:</strong> {settings.jazzCashAccount || getStorePhones(settings)[0]}
             </div>
             {settings.bankAccountDetails && (
               <div>
@@ -136,18 +139,50 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
           </div>
         </div>
 
-        <div className="space-y-2 pt-1">
-          {whatsappUrl && (
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>Send Payment Screenshot on WhatsApp</span>
-            </a>
-          )}
+        <div className="space-y-2.5 pt-1">
+          <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-left space-y-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-900 block">
+              Send Payment Screenshot on WhatsApp (Choose Any Number)
+            </span>
+            <div className="space-y-1.5">
+              {getStorePhones(settings).map((phone, idx) => {
+                const targetUrl =
+                  idx === 0 && whatsappUrl && !orderMessage
+                    ? whatsappUrl
+                    : buildWhatsAppUrl(
+                        phone,
+                        orderMessage ||
+                          `Assalam-o-Alaikum ${settings.storeName || STORE_NAME}! I have placed Order #${orderId} and am sending my advance payment screenshot.`
+                      );
+                return (
+                  <div
+                    key={phone}
+                    className="p-2 rounded-xl bg-white border border-emerald-200 flex items-center justify-between gap-2"
+                  >
+                    <span className="font-mono font-bold text-slate-900 text-xs">{phone}</span>
+                    <div className="flex items-center gap-1.5">
+                      <a
+                        href={formatTelLink(phone)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-amber-50 border border-slate-200 text-slate-800 text-[11px] font-bold transition-colors"
+                      >
+                        <Phone className="w-3 h-3 text-amber-600" />
+                        <span>Call</span>
+                      </a>
+                      <a
+                        href={targetUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold shadow-sm transition-colors"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>WhatsApp</span>
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
           {loadedOrder && (
             <button

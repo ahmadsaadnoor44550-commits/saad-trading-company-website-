@@ -1,7 +1,7 @@
 import React from 'react';
 import { useStore } from '../context/StoreContext';
-import { STORE_NAME } from '../data/constants';
-import { MessageCircle, ArrowRight, ShieldCheck, Truck, Smartphone, CheckCircle } from 'lucide-react';
+import { STORE_NAME, getStorePhones, buildWhatsAppUrl } from '../data/constants';
+import { MessageCircle, ShieldCheck, Truck, Smartphone, CheckCircle } from 'lucide-react';
 
 interface HeroBannerProps {
   onSelectCategory: (category: string) => void;
@@ -10,9 +10,9 @@ interface HeroBannerProps {
 export const HeroBanner: React.FC<HeroBannerProps> = ({ onSelectCategory }) => {
   const { settings } = useStore();
 
-  let cleanPhone = (settings.whatsappNumber || '03330916398').replace(/[^0-9]/g, '');
-  if (cleanPhone.startsWith('03')) cleanPhone = '92' + cleanPhone.slice(1);
-
+  const phones = getStorePhones(settings);
+  const activeStoreName = settings.storeName || STORE_NAME;
+  const heroMessage = `Assalam-o-Alaikum ${activeStoreName}! I am inquiring about mobile display screens and accessories.`;
   const categories = settings.categories || ['Mobile LCDs', 'Mobile LEDs', 'OLED Screens', 'Mobile Accessories'];
 
   return (
@@ -23,12 +23,12 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSelectCategory }) => {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-[11px] sm:text-xs font-bold tracking-wide">
             <Smartphone className="w-3.5 h-3.5 text-amber-600" />
-            <span>Official {settings.storeName || STORE_NAME} Store</span>
+            <span>Official {activeStoreName} Store</span>
           </div>
 
           {/* Heading */}
           <h1 className="font-empire text-2xl xs:text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
-            {settings.storeName || STORE_NAME} – Premium Mobile Displays & Screens
+            {activeStoreName} – Premium Mobile Displays & Screens
           </h1>
 
           {/* Subtitle */}
@@ -49,17 +49,26 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSelectCategory }) => {
             ))}
           </div>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-wrap items-center gap-3 pt-2">
-            <a
-              href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Assalam-o-Alaikum ${settings.storeName || STORE_NAME}! I am inquiring about mobile display screens and accessories.`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-sm"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>Contact Owner on WhatsApp</span>
-            </a>
+          {/* WhatsApp CTA Buttons (All 3 Numbers) */}
+          <div className="space-y-2 pt-2">
+            <div className="flex flex-wrap items-center gap-2.5">
+              {phones.map((phone, idx) => (
+                <a
+                  key={phone}
+                  href={buildWhatsAppUrl(phone, heroMessage)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all shadow-sm ${
+                    idx === 0
+                      ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                      : 'bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200'
+                  }`}
+                >
+                  <MessageCircle className="w-4 h-4 shrink-0" />
+                  <span>{idx === 0 ? `WhatsApp: ${phone}` : phone}</span>
+                </a>
+              ))}
+            </div>
           </div>
 
           {/* Trust points */}

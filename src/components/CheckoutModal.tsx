@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
 import { useAuth } from '../context/AuthContext';
-import { formatPKR, PAKISTAN_CITIES, STORE_NAME } from '../data/constants';
+import { formatPKR, PAKISTAN_CITIES, STORE_NAME, getStorePhones, buildWhatsAppUrl } from '../data/constants';
 import { 
   X, 
   MessageCircle, 
@@ -19,7 +19,7 @@ import {
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (orderId: string, whatsappUrl: string) => void;
+  onSuccess: (orderId: string, whatsappUrl: string, message?: string) => void;
 }
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({
@@ -87,7 +87,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      const { orderId, whatsappUrl } = await createOrder({
+      const { orderId, whatsappUrl, message } = await createOrder({
         customerName,
         phone,
         address: finalAddress,
@@ -97,7 +97,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       });
 
       // Hand off directly to the success confirmation dialog
-      onSuccess(orderId, whatsappUrl);
+      onSuccess(orderId, whatsappUrl, message);
       onClose();
     } catch (err: unknown) {
       console.error('Checkout error:', err);
@@ -342,13 +342,25 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] pt-1">
               <div className="p-2.5 rounded-xl bg-white border border-amber-200 space-y-0.5">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">EasyPaisa & JazzCash Account</span>
-                <span className="font-bold text-slate-900 block font-mono text-xs">{settings.easyPaisaAccount || settings.whatsappNumber || '0333-0916398'}</span>
+                <span className="font-bold text-slate-900 block font-mono text-xs">{settings.easyPaisaAccount || getStorePhones(settings)[0]}</span>
                 <span className="text-[10px] text-slate-500 block">Account Title: <strong>{settings.ownerName || 'Ahmad Saad'}</strong></span>
               </div>
 
-              <div className="p-2.5 rounded-xl bg-white border border-amber-200 space-y-0.5">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">WhatsApp for Screenshot</span>
-                <span className="font-bold text-slate-900 block font-mono text-xs">{settings.whatsappNumber || '0333-0916398'}</span>
+              <div className="p-2.5 rounded-xl bg-white border border-amber-200 space-y-1">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">WhatsApp for Screenshot (All 3 Lines)</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {getStorePhones(settings).map((num) => (
+                    <a
+                      key={num}
+                      href={buildWhatsAppUrl(num)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-bold text-emerald-800 hover:text-emerald-900 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-mono text-[11px] transition-colors"
+                    >
+                      {num}
+                    </a>
+                  ))}
+                </div>
                 <span className="text-[10px] text-slate-500 block">Order confirmed after screenshot received</span>
               </div>
             </div>

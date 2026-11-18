@@ -155,7 +155,17 @@
         },
         "whatsappNumber": {
           "type": "string",
-          "description": "Owner WhatsApp number for order messages",
+          "description": "Primary owner WhatsApp number for order messages",
+          "maxLength": 30
+        },
+        "whatsappNumber2": {
+          "type": "string",
+          "description": "Second owner WhatsApp and contact number",
+          "maxLength": 30
+        },
+        "whatsappNumber3": {
+          "type": "string",
+          "description": "Third owner WhatsApp and contact number",
           "maxLength": 30
         },
         "contactEmail": {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -8,12 +8,13 @@ import {
   Crown, 
   Menu, 
   X, 
-  Shield, 
   PackageSearch,
   MessageCircle,
-  User
+  User,
+  Phone,
+  ChevronDown
 } from 'lucide-react';
-import { formatPKR, STORE_NAME } from '../data/constants';
+import { formatPKR, STORE_NAME, getStorePhones, buildWhatsAppUrl, formatTelLink } from '../data/constants';
 
 interface HeaderProps {
   onOpenCart: () => void;
@@ -43,11 +44,25 @@ export const Header: React.FC<HeaderProps> = ({
   const { cartTotalCount, cartSubtotal, wishlist, settings } = useStore();
   const { isOwner, currentUser, userProfile } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [whatsappMenuOpen, setWhatsappMenuOpen] = useState(false);
+  const whatsappDropdownRef = useRef<HTMLDivElement>(null);
 
-  let cleanPhone = (settings.whatsappNumber || '03330916398').replace(/[^0-9]/g, '');
-  if (cleanPhone.startsWith('03')) cleanPhone = '92' + cleanPhone.slice(1);
-
+  const phones = getStorePhones(settings);
+  const activeStoreName = settings.storeName || STORE_NAME;
+  const inquiryMsg = `Assalam-o-Alaikum ${activeStoreName}! I am inquiring about product availability.`;
   const categories = settings.categories || ['Mobile LCDs', 'Mobile LEDs', 'OLED Screens', 'Mobile Accessories'];
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (whatsappDropdownRef.current && !whatsappDropdownRef.current.contains(e.target as Node)) {
+        setWhatsappMenuOpen(false);
+      }
+    };
+    if (whatsappMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [whatsappMenuOpen]);
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
@@ -77,7 +92,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <div className="flex flex-col min-w-0">
               <span className="font-empire text-base xs:text-lg sm:text-2xl font-black tracking-wide text-slate-900 truncate max-w-[130px] xs:max-w-[190px] sm:max-w-none">
-                {settings.storeName || STORE_NAME}
+                {activeStoreName}
               </span>
               <span className="text-[9px] uppercase tracking-[0.2em] text-slate-500 font-semibold truncate max-w-[130px] sm:max-w-[200px] hidden xs:block">
                 {settings.tagline || 'Mobile Displays & Accessories'}
@@ -110,16 +125,59 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Customer Action Icons */}
           <div className="flex items-center gap-1.5 sm:gap-2.5">
             
-            {/* WhatsApp Contact */}
-            <a
-              href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Assalam-o-Alaikum ${settings.storeName || STORE_NAME}! I am inquiring about product availability.`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 text-xs font-semibold transition-all"
-            >
-              <MessageCircle className="w-4 h-4 text-emerald-600" />
-              <span className="hidden xl:inline">WhatsApp</span>
-            </a>
+            {/* Multi-number WhatsApp & Call Dropdown */}
+            <div ref={whatsappDropdownRef} className="relative hidden sm:block">
+              <button
+                type="button"
+                onClick={() => setWhatsappMenuOpen((prev) => !prev)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 text-xs font-semibold transition-all cursor-pointer"
+                title="Contact via Call or WhatsApp (3 Lines)"
+              >
+                <MessageCircle className="w-4 h-4 text-emerald-600" />
+                <span className="hidden xl:inline">WhatsApp</span>
+                <ChevronDown className="w-3.5 h-3.5 text-emerald-600" />
+              </button>
+
+              {whatsappMenuOpen && (
+                <div className="absolute right-0 mt-2 w-72 bg-white border border-slate-200 rounded-2xl shadow-xl p-3 space-y-2 z-50 animate-fadeIn">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-1">
+                    {activeStoreName} Contact Numbers
+                  </div>
+                  {phones.map((phone, idx) => (
+                    <div
+                      key={phone}
+                      className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2"
+                    >
+                      <div>
+                        <span className="text-[10px] font-semibold text-slate-400 block">
+                          {idx === 0 ? 'Main' : `Line ${idx + 1}`}
+                        </span>
+                        <span className="text-xs font-bold font-mono text-slate-900">{phone}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <a
+                          href={formatTelLink(phone)}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white border border-slate-200 hover:border-amber-400 text-slate-700 text-[11px] font-bold"
+                        >
+                          <Phone className="w-3 h-3 text-amber-600" />
+                          <span>Call</span>
+                        </a>
+                        <a
+                          href={buildWhatsAppUrl(phone, inquiryMsg)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => setWhatsappMenuOpen(false)}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold"
+                        >
+                          <MessageCircle className="w-3 h-3" />
+                          <span>WhatsApp</span>
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Track Order (Desktop / Tablet) */}
             <button
@@ -258,7 +316,7 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white border-t border-slate-200 px-4 py-5 space-y-4 shadow-xl">
+        <div className="lg:hidden bg-white border-t border-slate-200 px-4 py-5 space-y-4 shadow-xl max-h-[80vh] overflow-y-auto">
           <div className="space-y-1">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-2 block">
               Categories
@@ -288,6 +346,41 @@ export const Header: React.FC<HeaderProps> = ({
                 {cat}
               </button>
             ))}
+          </div>
+
+          {/* Mobile Contact Numbers */}
+          <div className="border-t border-slate-200 pt-3 space-y-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-2 block">
+              Call & WhatsApp Numbers
+            </span>
+            <div className="space-y-1.5">
+              {phones.map((phone) => (
+                <div
+                  key={phone}
+                  className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2"
+                >
+                  <span className="text-xs font-bold font-mono text-slate-900">{phone}</span>
+                  <div className="flex items-center gap-1.5">
+                    <a
+                      href={formatTelLink(phone)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-800 text-[11px] font-bold"
+                    >
+                      <Phone className="w-3 h-3 text-amber-600" />
+                      <span>Call</span>
+                    </a>
+                    <a
+                      href={buildWhatsAppUrl(phone, inquiryMsg)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-[11px] font-bold"
+                    >
+                      <MessageCircle className="w-3 h-3" />
+                      <span>WhatsApp</span>
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="border-t border-slate-200 pt-3 space-y-2">

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Order, StoreSettings } from '../../types';
-import { formatPKR, STORE_NAME } from '../../data/constants';
+import { formatPKR, STORE_NAME, getStorePhones } from '../../data/constants';
 import { 
   Printer, 
   X, 
@@ -42,7 +42,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({
     minute: '2-digit',
   });
 
-  const businessPhone = settings.whatsappNumber || settings.contactPhone || '03330916398';
+  const businessPhones = getStorePhones(settings).join(' / ');
   const businessEmail = settings.contactEmail || 'ahmadsaadnoor44550@gmail.com';
   const businessAddress = settings.businessAddress || 'Shop #, Mobile Market, Pakistan';
   const storeName = settings.storeName || STORE_NAME;
@@ -122,8 +122,8 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({
               </div>
               <div className="font-bold text-slate-900">{ownerName} (Proprietor)</div>
               <div className="text-slate-600 flex sm:justify-end items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5 text-slate-400" />
-                <span>WhatsApp: {businessPhone}</span>
+                <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span>WhatsApp: {businessPhones}</span>
               </div>
               <div className="text-slate-600 flex sm:justify-end items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5 text-slate-400" />
@@ -326,7 +326,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({
                 2. Physical damage, broken flex cables, or removed warranty stamps are non-returnable.
               </p>
               <p>
-                3. For inquiries, contact WhatsApp: <strong className="text-slate-700">{businessPhone}</strong>
+                3. For inquiries, contact WhatsApp: <strong className="text-slate-700">{businessPhones}</strong>
               </p>
             </div>
 

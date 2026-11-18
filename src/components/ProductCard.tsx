@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Product } from '../types';
 import { useStore } from '../context/StoreContext';
 import { useAuth } from '../context/AuthContext';
-import { formatPKR, STORE_NAME } from '../data/constants';
+import { formatPKR, STORE_NAME, getStorePhones, buildWhatsAppUrl } from '../data/constants';
 import { ShoppingBag, Heart, Eye, MessageCircle, Check, Zap } from 'lucide-react';
 
 interface ProductCardProps {
@@ -21,13 +21,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const { addToCart, isInWishlist, toggleWishlist, settings } = useStore();
   const { currentUser } = useAuth();
   const [addedAnimation, setAddedAnimation] = useState(false);
+  const [waPickerOpen, setWaPickerOpen] = useState(false);
 
   const isFavorited = isInWishlist(product.id);
   const inStock = product.isAvailable && product.stock > 0;
   const currentPrice = product.discountPrice ?? product.price;
-
-  let cleanPhone = (settings.whatsappNumber || '03330916398').replace(/[^0-9]/g, '');
-  if (cleanPhone.startsWith('03')) cleanPhone = '92' + cleanPhone.slice(1);
+  const phones = getStorePhones(settings);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -71,7 +70,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     toggleWishlist(product.id);
   };
 
-  const handleWhatsAppQuickOrder = (e: React.MouseEvent) => {
+  const handleWhatsAppQuickOrder = (e: React.MouseEvent, targetPhone: string) => {
     e.stopPropagation();
     const storeTitle = settings.storeName || STORE_NAME;
     const msg = 
@@ -84,7 +83,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 ─────────────────────
 Assalam-o-Alaikum ${storeTitle}! I am interested in purchasing this product. Please share delivery time and payment details.`;
 
-    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+    setWaPickerOpen(false);
+    window.open(buildWhatsAppUrl(targetPhone, msg), '_blank');
   };
 
   const mainImage = product.images?.[0] || '';
@@ -194,13 +194,41 @@ Assalam-o-Alaikum ${storeTitle}! I am interested in purchasing this product. Ple
                 )}
               </button>
 
-              <button
-                onClick={handleWhatsAppQuickOrder}
-                className="py-1.5 px-1 sm:px-2 rounded-xl text-[10px] sm:text-[11px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-all flex items-center justify-center gap-1 cursor-pointer"
-              >
-                <MessageCircle className="w-3 h-3 text-emerald-600" />
-                <span>WhatsApp</span>
-              </button>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setWaPickerOpen((prev) => !prev);
+                  }}
+                  className="w-full py-1.5 px-1 sm:px-2 rounded-xl text-[10px] sm:text-[11px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-all flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <MessageCircle className="w-3 h-3 text-emerald-600" />
+                  <span>WhatsApp</span>
+                </button>
+
+                {waPickerOpen && (
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute bottom-full right-0 mb-1.5 w-36 bg-white border border-emerald-200 rounded-xl shadow-xl p-1.5 space-y-1 z-30 animate-fadeIn"
+                  >
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 px-1 block">
+                      Select Number
+                    </span>
+                    {phones.map((phone) => (
+                      <button
+                        key={phone}
+                        type="button"
+                        onClick={(e) => handleWhatsAppQuickOrder(e, phone)}
+                        className="w-full text-left px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-900 hover:text-white font-mono font-bold text-[10px] flex items-center gap-1 transition-colors cursor-pointer"
+                      >
+                        <MessageCircle className="w-2.5 h-2.5 shrink-0" />
+                        <span>{phone}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

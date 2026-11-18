@@ -50,7 +50,9 @@ export interface StoreSettings {
   storeName: string;
   ownerName: string;
   tagline: string;
-  whatsappNumber: string; // Real owner WhatsApp e.g. 03330916398
+  whatsappNumber: string; // Primary owner WhatsApp e.g. 03330916398
+  whatsappNumber2?: string; // Secondary owner WhatsApp e.g. 03329940609
+  whatsappNumber3?: string; // Third owner WhatsApp e.g. 03155570064
   contactEmail: string;
   contactPhone: string;
   businessAddress: string;

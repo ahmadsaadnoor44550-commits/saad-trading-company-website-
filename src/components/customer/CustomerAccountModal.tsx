@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
-import { formatPKR, STORE_NAME } from '../../data/constants';
+import { formatPKR, STORE_NAME, getStorePhones, buildWhatsAppUrl } from '../../data/constants';
 import { 
   X, 
   User, 
@@ -79,7 +79,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
 
   if (!isOpen || !currentUser) return null;
 
-  const cleanPhone = (settings.whatsappNumber || '03330916398').replace(/[^0-9]/g, '');
+  const phones = getStorePhones(settings);
 
   const wishlistProducts = products.filter((p) => wishlist.includes(p.id));
 
@@ -660,15 +660,21 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
 
         {/* Footer Actions */}
         <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 shrink-0">
-          <a
-            href={`https://wa.me/${cleanPhone}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs text-emerald-700 hover:text-emerald-800 font-semibold"
-          >
-            <MessageCircle className="w-4 h-4" />
-            <span>Contact {settings.storeName || STORE_NAME} on WhatsApp</span>
-          </a>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-slate-500 mr-1">WhatsApp:</span>
+            {phones.map((phone) => (
+              <a
+                key={phone}
+                href={buildWhatsAppUrl(phone)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[11px] text-emerald-800 font-mono font-bold transition-colors"
+              >
+                <MessageCircle className="w-3 h-3" />
+                <span>{phone}</span>
+              </a>
+            ))}
+          </div>
 
           <button
             onClick={() => {

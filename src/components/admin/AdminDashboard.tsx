@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { useAuth, PRIMARY_OWNER_EMAIL } from '../../context/AuthContext';
 import { Product, Order, OrderStatus, StoreSettings, UserProfile } from '../../types';
-import { formatPKR, STORE_NAME } from '../../data/constants';
+import { formatPKR, STORE_NAME, DEFAULT_CONTACT_NUMBERS, getStorePhones } from '../../data/constants';
 import { ProductFormModal } from './ProductFormModal';
 import { OrderReceiptModal } from './OrderReceiptModal';
 import { 
@@ -1192,39 +1192,65 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
               </div>
             )}
 
-            {/* WhatsApp Configuration */}
+            {/* WhatsApp Configuration (All 3 Numbers) */}
             <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
               <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
                 <MessageCircle className="w-4 h-4 text-emerald-600" />
-                <span>Owner WhatsApp Number (Order Receiving)</span>
+                <span>Owner WhatsApp & Contact Numbers (Saved to Firestore)</span>
               </h4>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div className="space-y-1">
                   <label className="font-semibold text-slate-700">
-                    WhatsApp Number *
+                    Main WhatsApp & Call Number 1 *
                   </label>
                   <input
                     type="text"
                     required
                     value={settingsForm.whatsappNumber}
                     onChange={(e) => setSettingsForm({ ...settingsForm, whatsappNumber: e.target.value })}
-                    placeholder="03330916398"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:outline-none focus:border-amber-600"
+                    placeholder={DEFAULT_CONTACT_NUMBERS[0]}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono focus:bg-white focus:outline-none focus:border-amber-600"
                   />
                   <p className="text-[10px] text-slate-500">
-                    Your real WhatsApp number: <strong>03330916398</strong> (all customer order buttons route to this number).
+                    Shown in top banner and primary checkout/WhatsApp links.
                   </p>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-700">Owner Contact Phone</label>
+                  <label className="font-semibold text-slate-700">
+                    WhatsApp & Call Number 2
+                  </label>
+                  <input
+                    type="text"
+                    value={settingsForm.whatsappNumber2 ?? DEFAULT_CONTACT_NUMBERS[1]}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, whatsappNumber2: e.target.value })}
+                    placeholder={DEFAULT_CONTACT_NUMBERS[1]}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono focus:bg-white focus:outline-none focus:border-amber-600"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">
+                    WhatsApp & Call Number 3
+                  </label>
+                  <input
+                    type="text"
+                    value={settingsForm.whatsappNumber3 ?? DEFAULT_CONTACT_NUMBERS[2]}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, whatsappNumber3: e.target.value })}
+                    placeholder={DEFAULT_CONTACT_NUMBERS[2]}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono focus:bg-white focus:outline-none focus:border-amber-600"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Primary Contact Phone</label>
                   <input
                     type="text"
                     value={settingsForm.contactPhone}
                     onChange={(e) => setSettingsForm({ ...settingsForm, contactPhone: e.target.value })}
-                    placeholder="03330916398"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:outline-none focus:border-amber-600"
+                    placeholder={DEFAULT_CONTACT_NUMBERS[0]}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono focus:bg-white focus:outline-none focus:border-amber-600"
                   />
                 </div>
               </div>
@@ -1471,7 +1497,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
                 <span>Notice for Ahmad Saad (Master Owner)</span>
               </div>
               <p className="leading-relaxed">
-                <strong>You are already the Master Owner of {settings.storeName || STORE_NAME}</strong> with email <strong>ahmadsaadnoor44550@gmail.com</strong> and WhatsApp <strong>03330916398</strong>.
+                <strong>You are already the Master Owner of {settings.storeName || STORE_NAME}</strong> with email <strong>ahmadsaadnoor44550@gmail.com</strong> and WhatsApp numbers <strong>{getStorePhones(settings).join(' / ')}</strong>.
                 You already have 100% full authority over products, orders, customers, and delivery rates.
                 <strong>You DO NOT need to create a new account to run your business!</strong>
               </p>
@@ -1653,7 +1679,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
             <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2">
               <h4 className="font-bold text-slate-900 text-sm">1. Sharing the Website with Customers</h4>
               <p className="leading-relaxed text-slate-600">
-                You can share your live website URL with customers across Pakistan. Customers open the website, view your Mobile LCDs, LEDs, and accessories, add items to cart, register their accounts, and submit orders directly to your WhatsApp number (<strong>{settings.whatsappNumber || '03330916398'}</strong>).
+                You can share your live website URL with customers across Pakistan. Customers open the website, view your Mobile LCDs, LEDs, and accessories, add items to cart, register their accounts, and submit orders directly to your WhatsApp numbers (<strong>{getStorePhones(settings).join(' / ')}</strong>).
               </p>
             </div>
 

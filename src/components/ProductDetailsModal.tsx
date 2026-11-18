@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Product } from '../types';
 import { useStore } from '../context/StoreContext';
 import { useAuth } from '../context/AuthContext';
-import { formatPKR, STORE_NAME } from '../data/constants';
+import { formatPKR, STORE_NAME, getStorePhones, buildWhatsAppUrl } from '../data/constants';
 import { 
   X, 
   ShoppingBag, 
@@ -41,15 +41,15 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   const [isZoomOpen, setIsZoomOpen] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
 
+  const [showWaPicker, setShowWaPicker] = useState(false);
+
   if (!product) return null;
 
   const images = product.images && product.images.length > 0 ? product.images : [];
   const isFavorited = isInWishlist(product.id);
   const currentPrice = product.discountPrice ?? product.price;
   const inStock = product.isAvailable && product.stock > 0;
-
-  let cleanPhone = (settings.whatsappNumber || '03330916398').replace(/[^0-9]/g, '');
-  if (cleanPhone.startsWith('03')) cleanPhone = '92' + cleanPhone.slice(1);
+  const phones = getStorePhones(settings);
 
   const handleAddToCart = () => {
     if (!currentUser) {
@@ -87,7 +87,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
     toggleWishlist(product.id);
   };
 
-  const handleWhatsAppOrder = () => {
+  const handleWhatsAppOrder = (targetPhone: string) => {
     const totalItemPrice = currentPrice * quantity;
     const storeTitle = settings.storeName || STORE_NAME;
     const msg = 
@@ -101,7 +101,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
 ─────────────────────
 Assalam-o-Alaikum ${storeTitle}! I want to order this product. Please share delivery timeframe and payment details (EasyPaisa / JazzCash / Bank Transfer).`;
 
-    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(buildWhatsAppUrl(targetPhone, msg), '_blank');
   };
 
   return (
@@ -331,13 +331,34 @@ Assalam-o-Alaikum ${storeTitle}! I want to order this product. Please share deli
                 </button>
               </div>
 
-              <button
-                onClick={handleWhatsAppOrder}
-                className="w-full py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-sm flex items-center justify-center gap-2"
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span>Order on WhatsApp Directly</span>
-              </button>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => setShowWaPicker((prev) => !prev)}
+                  className="w-full py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Order on WhatsApp Directly</span>
+                </button>
+                {showWaPicker && (
+                  <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex flex-wrap items-center justify-center gap-1.5 animate-fadeIn">
+                    <span className="w-full text-center text-[10px] font-bold uppercase tracking-wider text-emerald-900">
+                      Choose WhatsApp Number:
+                    </span>
+                    {phones.map((phone) => (
+                      <button
+                        key={phone}
+                        type="button"
+                        onClick={() => handleWhatsAppOrder(phone)}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white hover:bg-emerald-600 hover:text-white border border-emerald-300 text-emerald-900 font-mono font-bold text-[11px] transition-colors cursor-pointer"
+                      >
+                        <MessageCircle className="w-3 h-3" />
+                        <span>{phone}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
           </div>

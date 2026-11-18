@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
 import { Order, OrderStatus } from '../types';
-import { formatPKR, STORE_NAME } from '../data/constants';
+import { formatPKR, STORE_NAME, getStorePhones, buildWhatsAppUrl } from '../data/constants';
 import { 
   X, 
   Search, 
@@ -63,8 +63,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
     }
   };
 
-  let cleanPhone = (settings.whatsappNumber || '03330916398').replace(/[^0-9]/g, '');
-  if (cleanPhone.startsWith('03')) cleanPhone = '92' + cleanPhone.slice(1);
+  const phones = getStorePhones(settings);
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
@@ -165,25 +164,35 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
               <span>{formatPKR(searchedOrder.totalAmount)}</span>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="space-y-2">
               <button
                 onClick={() => setShowReceipt(true)}
-                className="flex-1 py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
                 title="Print or save PDF receipt"
               >
                 <Printer className="w-4 h-4 text-amber-400" />
                 <span>Print Receipt (PDF)</span>
               </button>
 
-              <a
-                href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Assalam-o-Alaikum ${settings.storeName || STORE_NAME}! I am inquiring about my Order #${searchedOrder.id}.`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all"
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span>WhatsApp Owner</span>
-              </a>
+              <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-900 block">
+                  Inquire on WhatsApp:
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {phones.map((phone) => (
+                    <a
+                      key={phone}
+                      href={buildWhatsAppUrl(phone, `Assalam-o-Alaikum ${settings.storeName || STORE_NAME}! I am inquiring about my Order #${searchedOrder.id}.`)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] shadow-sm transition-all"
+                    >
+                      <MessageCircle className="w-3 h-3" />
+                      <span>{phone}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Customer Cancellation Option */}
