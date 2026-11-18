@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { useAuth, PRIMARY_OWNER_EMAIL } from '../../context/AuthContext';
 import { Product, Order, OrderStatus, StoreSettings, UserProfile } from '../../types';
-import { formatPKR } from '../../data/constants';
+import { formatPKR, STORE_NAME } from '../../data/constants';
 import { ProductFormModal } from './ProductFormModal';
 import { OrderReceiptModal } from './OrderReceiptModal';
 import { 
@@ -81,7 +81,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
 
   // Edit Website Name Modal state
   const [editSiteNameModalOpen, setEditSiteNameModalOpen] = useState(false);
-  const [siteNameInput, setSiteNameInput] = useState(settings.storeName || 'SAAD TRADING COMPANY');
+  const [siteNameInput, setSiteNameInput] = useState(settings.storeName || STORE_NAME);
   const [siteTaglineInput, setSiteTaglineInput] = useState(settings.tagline || 'Mobile Displays & Accessories');
   const [savingSiteName, setSavingSiteName] = useState(false);
 
@@ -117,7 +117,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
   // Sync settingsForm and site name input when store settings change
   React.useEffect(() => {
     setSettingsForm(settings);
-    setSiteNameInput(settings.storeName || 'SAAD TRADING COMPANY');
+    setSiteNameInput(settings.storeName || STORE_NAME);
     setSiteTaglineInput(settings.tagline || 'Mobile Displays & Accessories');
   }, [settings]);
 
@@ -324,7 +324,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
   const openWhatsAppCustomer = (order: Order) => {
     let clean = order.phone.replace(/[^0-9]/g, '');
     if (clean.startsWith('03')) clean = '92' + clean.slice(1);
-    const msg = `Assalam-o-Alaikum ${order.customerName}! This is SAAD TRADING COMPANY regarding your Order #${order.id}. Current status: ${order.status}.`;
+    const msg = `Assalam-o-Alaikum ${order.customerName}! This is ${settings.storeName || STORE_NAME} regarding your Order #${order.id}. Current status: ${order.status}.`;
     window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
@@ -341,7 +341,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <span className="font-empire text-sm sm:text-lg font-black tracking-wide text-slate-900 truncate max-w-[130px] xs:max-w-[180px] sm:max-w-none">
-                  {settings.storeName || 'SAAD TRADING COMPANY'}
+                  {settings.storeName || STORE_NAME}
                 </span>
                 <span className="px-1.5 sm:px-2 py-0.5 rounded-md bg-amber-100 border border-amber-300 text-[9px] sm:text-[10px] font-black uppercase text-amber-900 shrink-0">
                   Owner
@@ -1069,7 +1069,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
                             <div className="flex items-center gap-1.5">
                               {cust.phone ? (
                                 <a
-                                  href={`https://wa.me/${clean}?text=${encodeURIComponent(`Assalam-o-Alaikum ${cust.fullName}! This is SAAD TRADING COMPANY owner.`)}`}
+                                  href={`https://wa.me/${clean}?text=${encodeURIComponent(`Assalam-o-Alaikum ${cust.fullName}! This is ${settings.storeName || STORE_NAME} owner.`)}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold"
@@ -1137,7 +1137,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
                                 <div className="flex items-center justify-end gap-2">
                                   {cust.phone ? (
                                     <a
-                                      href={`https://wa.me/${clean}?text=${encodeURIComponent(`Assalam-o-Alaikum ${cust.fullName}! This is SAAD TRADING COMPANY owner.`)}`}
+                                      href={`https://wa.me/${clean}?text=${encodeURIComponent(`Assalam-o-Alaikum ${cust.fullName}! This is ${settings.storeName || STORE_NAME} owner.`)}`}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold"
@@ -1243,7 +1243,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
                     type="text"
                     value={settingsForm.storeName}
                     onChange={(e) => setSettingsForm({ ...settingsForm, storeName: e.target.value })}
-                    placeholder="SAAD TRADING COMPANY"
+                    placeholder={STORE_NAME}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:outline-none focus:border-amber-600"
                   />
                 </div>
@@ -1288,7 +1288,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
                   type="text"
                   value={settingsForm.announcement || ''}
                   onChange={(e) => setSettingsForm({ ...settingsForm, announcement: e.target.value })}
-                  placeholder="Welcome to SAAD TRADING COMPANY – Premium Mobile Displays & Phone Accessories."
+                  placeholder={`Welcome to ${STORE_NAME} – Premium Mobile Displays & Phone Accessories.`}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:outline-none focus:border-amber-600"
                 />
               </div>
@@ -1471,7 +1471,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
                 <span>Notice for Ahmad Saad (Master Owner)</span>
               </div>
               <p className="leading-relaxed">
-                <strong>You are already the Master Owner of SAAD TRADING COMPANY</strong> with email <strong>ahmadsaadnoor44550@gmail.com</strong> and WhatsApp <strong>03330916398</strong>.
+                <strong>You are already the Master Owner of {settings.storeName || STORE_NAME}</strong> with email <strong>ahmadsaadnoor44550@gmail.com</strong> and WhatsApp <strong>03330916398</strong>.
                 You already have 100% full authority over products, orders, customers, and delivery rates.
                 <strong>You DO NOT need to create a new account to run your business!</strong>
               </p>
@@ -1575,7 +1575,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
             <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2">
               <h3 className="font-empire text-lg font-bold text-slate-900 flex items-center gap-2">
                 <Crown className="w-5 h-5 text-amber-600" />
-                <span>{settings.storeName || 'SAAD TRADING COMPANY'} – Live Store Sharing Guide</span>
+                <span>{settings.storeName || STORE_NAME} – Live Store Sharing Guide</span>
               </h3>
               <p className="text-slate-500">
                 Official store link, video description attachment instructions, and customer order management.
@@ -1888,7 +1888,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToStore 
                   required
                   value={siteNameInput}
                   onChange={(e) => setSiteNameInput(e.target.value)}
-                  placeholder="e.g. SAAD TRADING COMPANY, AHMAD MOBILES..."
+                  placeholder={`e.g. ${STORE_NAME}, AHMAD MOBILES...`}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-semibold focus:bg-white focus:outline-none focus:border-amber-600 text-sm"
                 />
                 <p className="text-[10px] text-slate-500">

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Product } from '../types';
 import { useStore } from '../context/StoreContext';
 import { useAuth } from '../context/AuthContext';
-import { formatPKR } from '../data/constants';
+import { formatPKR, STORE_NAME } from '../data/constants';
 import { ShoppingBag, Heart, Eye, MessageCircle, Check, Zap } from 'lucide-react';
 
 interface ProductCardProps {
@@ -73,7 +73,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   const handleWhatsAppQuickOrder = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const storeTitle = settings.storeName || 'SAAD TRADING COMPANY';
+    const storeTitle = settings.storeName || STORE_NAME;
     const msg = 
 `📱 *${storeTitle.toUpperCase()} – PRODUCT INQUIRY*
 ─────────────────────

@@ -1,5 +1,28 @@
 import { StoreSettings } from '../types';
 
+// Single source of truth for the store brand name
+export const STORE_NAME = 'AG CROWN';
+
+const LEGACY_BRAND_PATTERN = 'saad\\s*t[ra]+ding\\s*compa[mn]y|saad\\s*t[ra]+ding|as\\s*empire';
+
+export function hasLegacyBrandText(text?: string | null): boolean {
+  if (!text) return false;
+  return new RegExp(LEGACY_BRAND_PATTERN, 'i').test(text);
+}
+
+export function sanitizeStoreName(name?: string | null): string {
+  const trimmed = (name || '').trim();
+  if (!trimmed || hasLegacyBrandText(trimmed)) {
+    return STORE_NAME;
+  }
+  return trimmed;
+}
+
+export function sanitizeBrandText(text?: string | null): string {
+  if (!text) return '';
+  return text.replace(new RegExp(LEGACY_BRAND_PATTERN, 'gi'), STORE_NAME);
+}
+
 export const PAKISTAN_CITIES = [
   'Lahore',
   'Karachi',
@@ -41,7 +64,7 @@ export const INITIAL_BUSINESS_CATEGORIES = [
 ];
 
 export const DEFAULT_STORE_SETTINGS: StoreSettings = {
-  storeName: 'SAAD TRADING COMPANY',
+  storeName: STORE_NAME,
   ownerName: 'Ahmad Saad',
   tagline: 'Premium Mobile LCDs, LEDs, OLED Screens & Accessories',
   whatsappNumber: '03330916398', // Owner real WhatsApp number
@@ -50,8 +73,8 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
   businessAddress: '',
   logoUrl: '',
   bannerUrl: '',
-  announcement: 'Welcome to SAAD TRADING COMPANY – Premium Mobile Displays & Phone Accessories. Contact us on WhatsApp for verified orders.',
-  aboutText: 'SAAD TRADING COMPANY is your trusted source for premium Mobile LCDs, Mobile LEDs, OLED Screens, and mobile accessories in Pakistan. Every product is individually inspected for guaranteed display quality.',
+  announcement: `Welcome to ${STORE_NAME} – Premium Mobile Displays & Phone Accessories. Contact us on WhatsApp for verified orders.`,
+  aboutText: `${STORE_NAME} is your trusted source for premium Mobile LCDs, Mobile LEDs, OLED Screens, and mobile accessories in Pakistan. Every product is individually inspected for guaranteed display quality.`,
   ownerIntro: '',
   deliveryFee: 250,
   freeDeliveryThreshold: 0,

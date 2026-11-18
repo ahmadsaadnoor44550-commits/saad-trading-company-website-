@@ -1,5 +1,6 @@
 import React from 'react';
 import { useStore } from '../context/StoreContext';
+import { STORE_NAME } from '../data/constants';
 import { MessageCircle, ShieldCheck, Phone } from 'lucide-react';
 
 export const AnnouncementBar: React.FC = () => {
@@ -13,7 +14,7 @@ export const AnnouncementBar: React.FC = () => {
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
           <span className="font-medium text-slate-800">
-            {settings.announcement || 'Welcome to SAAD TRADING COMPANY – Mobile LCDs, LEDs, OLED Screens & Accessories.'}
+            {settings.announcement || `Welcome to ${STORE_NAME} – Mobile LCDs, LEDs, OLED Screens & Accessories.`}
           </span>
         </div>
 

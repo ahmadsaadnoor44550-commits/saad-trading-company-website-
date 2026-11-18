@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
+import { STORE_NAME } from '../../data/constants';
 import { 
   X, 
   User, 
@@ -159,7 +160,7 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
           <p className="text-xs text-slate-500">
             {mode === 'login'
               ? 'Sign in to track orders, save details, and view your purchase history.'
-              : `Register to shop mobile LCDs, LEDs, and accessories with ${settings.storeName || 'SAAD TRADING COMPANY'}.`}
+              : `Register to shop mobile LCDs, LEDs, and accessories with ${settings.storeName || STORE_NAME}.`}
           </p>
         </div>
 

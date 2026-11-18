@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
 import { useAuth } from '../context/AuthContext';
-import { formatPKR, PAKISTAN_CITIES } from '../data/constants';
+import { formatPKR, PAKISTAN_CITIES, STORE_NAME } from '../data/constants';
 import { 
   X, 
   MessageCircle, 
@@ -122,7 +122,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </div>
             <div>
               <h3 className="font-empire text-lg font-bold text-slate-900">
-                SAAD TRADING COMPANY Checkout
+                {settings.storeName || STORE_NAME} Checkout
               </h3>
               <p className="text-xs text-slate-500">
                 Direct WhatsApp Order & Verification (Pakistan)
@@ -220,7 +220,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     <span className="text-[11px] font-bold text-slate-700">Rs. 0</span>
                   </div>
                   <p className="text-[10px] text-slate-500 mt-0.5">
-                    Pick up in person from {settings.storeName || 'SAAD TRADING COMPANY'} shop. Advance payment required.
+                    Pick up in person from {settings.storeName || STORE_NAME} shop. Advance payment required.
                   </p>
                 </div>
               </div>
@@ -361,7 +361,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               <span>Order Confirmation via Advance Payment</span>
             </div>
             <p className="text-[11px] leading-relaxed text-slate-600">
-              When you click below, your order will be booked as <strong>Awaiting Payment</strong> in the SAAD TRADING COMPANY store database. Your order will be officially confirmed as soon as the advance payment is received and verified by the owner. Please send the payment screenshot directly on WhatsApp.
+              When you click below, your order will be booked as <strong>Awaiting Payment</strong> in the {settings.storeName || STORE_NAME} store database. Your order will be officially confirmed as soon as the advance payment is received and verified by the owner. Please send the payment screenshot directly on WhatsApp.
             </p>
           </div>
 

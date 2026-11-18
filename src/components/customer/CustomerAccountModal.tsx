@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
-import { formatPKR } from '../../data/constants';
+import { formatPKR, STORE_NAME } from '../../data/constants';
 import { 
   X, 
   User, 
@@ -667,7 +667,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
             className="inline-flex items-center gap-1.5 text-xs text-emerald-700 hover:text-emerald-800 font-semibold"
           >
             <MessageCircle className="w-4 h-4" />
-            <span>Contact SAAD TRADING COMPANY on WhatsApp</span>
+            <span>Contact {settings.storeName || STORE_NAME} on WhatsApp</span>
           </a>
 
           <button

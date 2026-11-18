@@ -1,5 +1,6 @@
 import React from 'react';
 import { useStore } from '../context/StoreContext';
+import { STORE_NAME } from '../data/constants';
 import { Crown, MessageCircle, Mail, MapPin } from 'lucide-react';
 
 interface FooterProps {
@@ -34,13 +35,13 @@ export const Footer: React.FC<FooterProps> = ({
                 <Crown className="w-4 h-4" />
               </div>
               <span className="font-empire text-lg font-black text-slate-900 tracking-wide">
-                {settings.storeName || 'SAAD TRADING COMPANY'}
+                {settings.storeName || STORE_NAME}
               </span>
             </div>
 
             <p className="text-slate-500 leading-relaxed text-xs">
               {settings.aboutText ||
-                'SAAD TRADING COMPANY provides tested Mobile LCDs, LEDs, OLED Screens, and mobile accessories across Pakistan. Order directly with personalized WhatsApp verification.'}
+                `${STORE_NAME} provides tested Mobile LCDs, LEDs, OLED Screens, and mobile accessories across Pakistan. Order directly with personalized WhatsApp verification.`}
             </p>
 
             <div className="pt-1 space-y-1.5 text-slate-700 font-medium">
@@ -148,7 +149,7 @@ export const Footer: React.FC<FooterProps> = ({
       <div className="border-t border-slate-200 bg-white py-4 px-4 sm:px-6 lg:px-8 text-center text-[11px] text-slate-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>
-            © {new Date().getFullYear()} {settings.storeName || 'SAAD TRADING COMPANY'}. All Rights Reserved.
+            © {new Date().getFullYear()} {settings.storeName || STORE_NAME}. All Rights Reserved.
           </span>
           <div className="flex items-center gap-3">
             <span>Prices in Pakistani Rupees (PKR)</span>

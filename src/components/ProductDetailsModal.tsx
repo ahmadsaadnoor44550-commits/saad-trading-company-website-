@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Product } from '../types';
 import { useStore } from '../context/StoreContext';
 import { useAuth } from '../context/AuthContext';
-import { formatPKR } from '../data/constants';
+import { formatPKR, STORE_NAME } from '../data/constants';
 import { 
   X, 
   ShoppingBag, 
@@ -89,7 +89,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
 
   const handleWhatsAppOrder = () => {
     const totalItemPrice = currentPrice * quantity;
-    const storeTitle = settings.storeName || 'SAAD TRADING COMPANY';
+    const storeTitle = settings.storeName || STORE_NAME;
     const msg = 
 `📱 *${storeTitle.toUpperCase()} – ORDER INQUIRY*
 ─────────────────────

@@ -11,7 +11,7 @@ import {
   Printer 
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
-import { formatPKR } from '../data/constants';
+import { formatPKR, STORE_NAME } from '../data/constants';
 import { OrderReceiptModal } from './admin/OrderReceiptModal';
 import { Order } from '../types';
 
@@ -71,7 +71,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
             Order Placed – Awaiting Advance Payment
           </span>
           <h3 className="font-empire text-2xl font-bold text-slate-900">
-            Thank You for Shopping with {settings.storeName || 'SAAD TRADING COMPANY'}!
+            Thank You for Shopping with {settings.storeName || STORE_NAME}!
           </h3>
           <p className="text-xs text-slate-600 max-w-sm mx-auto">
             Your order is recorded as <strong>Awaiting Payment</strong>. Please send your advance payment using the details below and share the screenshot on WhatsApp so the owner can confirm your order.

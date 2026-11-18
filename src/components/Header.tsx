@@ -13,7 +13,7 @@ import {
   MessageCircle,
   User
 } from 'lucide-react';
-import { formatPKR } from '../data/constants';
+import { formatPKR, STORE_NAME } from '../data/constants';
 
 interface HeaderProps {
   onOpenCart: () => void;
@@ -77,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <div className="flex flex-col min-w-0">
               <span className="font-empire text-base xs:text-lg sm:text-2xl font-black tracking-wide text-slate-900 truncate max-w-[130px] xs:max-w-[190px] sm:max-w-none">
-                {settings.storeName || 'SAAD TRADING COMPANY'}
+                {settings.storeName || STORE_NAME}
               </span>
               <span className="text-[9px] uppercase tracking-[0.2em] text-slate-500 font-semibold truncate max-w-[130px] sm:max-w-[200px] hidden xs:block">
                 {settings.tagline || 'Mobile Displays & Accessories'}
@@ -112,7 +112,7 @@ export const Header: React.FC<HeaderProps> = ({
             
             {/* WhatsApp Contact */}
             <a
-              href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Assalam-o-Alaikum ${settings.storeName || 'SAAD TRADING COMPANY'}! I am inquiring about product availability.`)}`}
+              href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Assalam-o-Alaikum ${settings.storeName || STORE_NAME}! I am inquiring about product availability.`)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 text-xs font-semibold transition-all"

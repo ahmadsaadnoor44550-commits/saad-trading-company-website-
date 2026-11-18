@@ -1,6 +1,6 @@
 import React from 'react';
 import { Order, StoreSettings } from '../../types';
-import { formatPKR } from '../../data/constants';
+import { formatPKR, STORE_NAME } from '../../data/constants';
 import { 
   Printer, 
   X, 
@@ -45,7 +45,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({
   const businessPhone = settings.whatsappNumber || settings.contactPhone || '03330916398';
   const businessEmail = settings.contactEmail || 'ahmadsaadnoor44550@gmail.com';
   const businessAddress = settings.businessAddress || 'Shop #, Mobile Market, Pakistan';
-  const storeName = settings.storeName || 'SAAD TRADING COMPANY';
+  const storeName = settings.storeName || STORE_NAME;
   const ownerName = settings.ownerName || 'Ahmad Saad';
 
   return (

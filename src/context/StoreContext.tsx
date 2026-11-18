@@ -12,7 +12,7 @@ import {
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { Product, Order, StoreSettings, CartItem, OrderStatus } from '../types';
-import { DEFAULT_STORE_SETTINGS } from '../data/constants';
+import { DEFAULT_STORE_SETTINGS, STORE_NAME, hasLegacyBrandText, sanitizeStoreName, sanitizeBrandText } from '../data/constants';
 import { useAuth } from './AuthContext';
 
 export interface StatusNotice {
@@ -77,9 +77,22 @@ interface StoreContextType {
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
-const CART_STORAGE_KEY = 'SAAD_TRADING_COMPANY_cart_clean_v2';
-const WISHLIST_STORAGE_KEY = 'saad_trading_company_wishlist_clean_v2';
-const SETTINGS_STORAGE_KEY = 'saad_trading_company_settings_cache_v2';
+const CART_STORAGE_KEY = 'ag_crown_cart_v3';
+const WISHLIST_STORAGE_KEY = 'ag_crown_wishlist_v3';
+const SETTINGS_STORAGE_KEY = 'ag_crown_settings_cache_v3';
+const LEGACY_CART_KEYS = ['SAAD_TRADING_COMPANY_cart_clean_v2', 'as_empire_cart_v1'];
+const LEGACY_WISHLIST_KEYS = ['saad_trading_company_wishlist_clean_v2', 'as_empire_wishlist_v1'];
+const LEGACY_SETTINGS_KEYS = ['saad_trading_company_settings_cache_v2', 'as_empire_settings_cache_v1'];
+
+function sanitizeSettingsObject(raw: Partial<StoreSettings>): StoreSettings {
+  const merged = { ...DEFAULT_STORE_SETTINGS, ...raw };
+  return {
+    ...merged,
+    storeName: sanitizeStoreName(merged.storeName),
+    announcement: merged.announcement ? sanitizeBrandText(merged.announcement) : DEFAULT_STORE_SETTINGS.announcement,
+    aboutText: merged.aboutText ? sanitizeBrandText(merged.aboutText) : DEFAULT_STORE_SETTINGS.aboutText,
+  };
+}
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isOwner, currentUser } = useAuth();
@@ -87,18 +100,32 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [customerOrders, setCustomerOrders] = useState<Order[]>([]);
-  
-  // Initialize with cached settings if available (ensuring no old AS Empire name ever flashes)
+  const migratedFirestoreRef = React.useRef<boolean>(false);
+
+  // Initialize with cached settings and scrub any legacy store names from localStorage/sessionStorage
   const [settings, setSettings] = useState<StoreSettings>(() => {
     try {
+      for (const oldKey of LEGACY_SETTINGS_KEYS) {
+        localStorage.removeItem(oldKey);
+        sessionStorage.removeItem(oldKey);
+      }
+      // Scrub any stray sessionStorage/localStorage cached settings containing old names
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const k = sessionStorage.key(i);
+        if (k && /settings|store/i.test(k)) {
+          const val = sessionStorage.getItem(k);
+          if (val && hasLegacyBrandText(val)) {
+            sessionStorage.setItem(k, sanitizeBrandText(val));
+          }
+        }
+      }
+
       const cached = localStorage.getItem(SETTINGS_STORAGE_KEY);
       if (cached) {
-        const parsed = JSON.parse(cached);
-        let sName = parsed.storeName || 'SAAD TRADING COMPANY';
-        if (sName.toUpperCase().includes('AS EMPIRE')) {
-          sName = 'SAAD TRADING COMPANY';
-        }
-        return { ...DEFAULT_STORE_SETTINGS, ...parsed, storeName: sName };
+        const parsed = JSON.parse(cached) as Partial<StoreSettings>;
+        const cleaned = sanitizeSettingsObject(parsed);
+        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(cleaned));
+        return cleaned;
       }
     } catch (e) {
       console.error(e);
@@ -109,7 +136,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
       const saved = localStorage.getItem(CART_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
+      if (saved) return JSON.parse(saved);
+      for (const oldKey of LEGACY_CART_KEYS) {
+        const oldSaved = localStorage.getItem(oldKey);
+        if (oldSaved) {
+          localStorage.setItem(CART_STORAGE_KEY, oldSaved);
+          localStorage.removeItem(oldKey);
+          return JSON.parse(oldSaved);
+        }
+      }
+      return [];
     } catch {
       return [];
     }
@@ -118,7 +154,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [wishlist, setWishlist] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem(WISHLIST_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
+      if (saved) return JSON.parse(saved);
+      for (const oldKey of LEGACY_WISHLIST_KEYS) {
+        const oldSaved = localStorage.getItem(oldKey);
+        if (oldSaved) {
+          localStorage.setItem(WISHLIST_STORAGE_KEY, oldSaved);
+          localStorage.removeItem(oldKey);
+          return JSON.parse(oldSaved);
+        }
+      }
+      return [];
     } catch {
       return [];
     }
@@ -154,21 +199,32 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       (docSnap) => {
         if (docSnap.exists()) {
           const remote = docSnap.data() as Partial<StoreSettings>;
-          let activeName = remote.storeName || 'SAAD TRADING COMPANY';
-          // Filter out the old pre-edit name if it was stored in Firestore previously
-          if (activeName.toUpperCase().includes('AS EMPIRE')) {
-            activeName = 'SAAD TRADING COMPANY';
-          }
-          const merged: StoreSettings = {
-            ...DEFAULT_STORE_SETTINGS,
-            ...remote,
-            storeName: activeName,
-          };
+          const merged = sanitizeSettingsObject(remote);
           setSettings(merged);
           try {
             localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(merged));
           } catch (e) {
             console.error(e);
+          }
+
+          // One-time Firestore migration: if owner opens and Firestore still holds old brand name, overwrite it permanently
+          const hasLegacyRemote =
+            hasLegacyBrandText(remote.storeName) ||
+            hasLegacyBrandText(remote.announcement) ||
+            hasLegacyBrandText(remote.aboutText);
+
+          if (isOwner && hasLegacyRemote && !migratedFirestoreRef.current) {
+            migratedFirestoreRef.current = true;
+            setDoc(
+              settingsDocRef,
+              {
+                storeName: merged.storeName,
+                announcement: merged.announcement,
+                aboutText: merged.aboutText,
+                updatedAt: new Date().toISOString(),
+              },
+              { merge: true }
+            ).catch((err) => console.warn('Settings brand migration note:', err));
           }
         } else {
           setSettings(DEFAULT_STORE_SETTINGS);
@@ -188,7 +244,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [isOwner]);
 
   // Real-time Products Listener (starts with 0 products until owner adds them)
   useEffect(() => {
@@ -283,7 +339,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               if (ord.status === 'Awaiting Payment') {
                 msg = `Your order #${ord.id} is awaiting advance payment. Please share your payment screenshot on WhatsApp.`;
               } else if (ord.status === 'Confirmed') {
-                msg = `Advance payment verified! Your order #${ord.id} has been confirmed by SAAD TRADING COMPANY.`;
+                msg = `Advance payment verified! Your order #${ord.id} has been confirmed by ${settings.storeName || STORE_NAME}.`;
               } else if (ord.status === 'Shipped') {
                 msg = `Your order #${ord.id} has been shipped! It is on the way.`;
               } else if (ord.status === 'Delivered') {
@@ -453,8 +509,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       )
       .join('\n');
 
+    const activeStoreName = settings.storeName || STORE_NAME;
     const whatsappMessage = 
-`📱 *NEW ORDER – SAAD TRADING COMPANY*
+`📱 *NEW ORDER – ${activeStoreName.toUpperCase()}*
 *Order Tracking ID:* #${orderId}
 ─────────────────────
 *Customer Information:*
@@ -475,7 +532,7 @@ ${itemsFormatted}
 • *Advance Payment Only* (EasyPaisa / JazzCash / Bank Transfer)
 • *Status:* Awaiting Advance Payment
 ─────────────────────
-_Assalam-o-Alaikum SAAD TRADING COMPANY! I have placed this order on your website. I am sending the advance payment screenshot here on WhatsApp to confirm my order._`;
+_Assalam-o-Alaikum ${activeStoreName}! I have placed this order on your website. I am sending the advance payment screenshot here on WhatsApp to confirm my order._`;
 
     // Clean phone number for WhatsApp link
     let cleanPhone = (settings.whatsappNumber || '03330916398').replace(/[^0-9]/g, '');
@@ -606,8 +663,7 @@ _Assalam-o-Alaikum SAAD TRADING COMPANY! I have placed this order on your websit
     try {
       const settingsRef = doc(db, 'settings', 'website');
       const updated = {
-        ...settings,
-        ...newSettings,
+        ...sanitizeSettingsObject({ ...settings, ...newSettings }),
         updatedAt: new Date().toISOString()
       };
       setSettings(updated);

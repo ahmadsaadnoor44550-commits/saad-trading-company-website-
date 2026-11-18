@@ -17,5 +17,5 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`SAAD TRADING COMPANY production server running on port ${PORT}`);
+  console.log(`AG CROWN production server running on port ${PORT}`);
 });

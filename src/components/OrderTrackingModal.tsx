@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
 import { Order, OrderStatus } from '../types';
-import { formatPKR } from '../data/constants';
+import { formatPKR, STORE_NAME } from '../data/constants';
 import { 
   X, 
   Search, 
@@ -79,7 +79,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
             </div>
             <div>
               <h3 className="font-empire text-lg font-bold text-slate-900">
-                Track Your {settings.storeName || 'SAAD TRADING COMPANY'} Order
+                Track Your {settings.storeName || STORE_NAME} Order
               </h3>
               <p className="text-xs text-slate-500">
                 Check delivery status of your mobile screen or accessories order
@@ -176,7 +176,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
               </button>
 
               <a
-                href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Assalam-o-Alaikum ${settings.storeName || 'SAAD TRADING COMPANY'}! I am inquiring about my Order #${searchedOrder.id}.`)}`}
+                href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Assalam-o-Alaikum ${settings.storeName || STORE_NAME}! I am inquiring about my Order #${searchedOrder.id}.`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all"

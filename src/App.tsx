@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useStore, StoreProvider } from './context/StoreContext';
 import { useAuth, AuthProvider } from './context/AuthContext';
 import { Product } from './types';
-import { formatPKR } from './data/constants';
+import { formatPKR, STORE_NAME } from './data/constants';
 import { AnnouncementBar } from './components/AnnouncementBar';
 import { Header } from './components/Header';
 import { HeroBanner } from './components/HeroBanner';
@@ -105,7 +105,7 @@ function StorefrontApp() {
 
   // Synchronize dynamic browser title with customized store name & owner
   useEffect(() => {
-    const storeName = settings.storeName || 'SAAD TRADING COMPANY';
+    const storeName = settings.storeName || STORE_NAME;
     const ownerName = settings.ownerName || 'Ahmad Saad';
     document.title = `${storeName} – Official Store | ${ownerName}`;
   }, [settings.storeName, settings.ownerName]);
@@ -309,7 +309,7 @@ function StorefrontApp() {
             </h3>
             <p className="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
               {products.length === 0
-                ? `Welcome to ${settings.storeName || 'SAAD TRADING COMPANY'}. We are updating our stock of Mobile LCDs, LEDs, and OLED Screens. Inquire directly on WhatsApp for immediate availability.`
+                ? `Welcome to ${settings.storeName || STORE_NAME}. We are updating our stock of Mobile LCDs, LEDs, and OLED Screens. Inquire directly on WhatsApp for immediate availability.`
                 : 'Try clearing your search terms or selecting another category.'}
             </p>
 
@@ -324,7 +324,7 @@ function StorefrontApp() {
                   </button>
                 ) : (
                   <a
-                    href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Assalam-o-Alaikum ${settings.storeName || 'SAAD TRADING COMPANY'}! I am looking for a mobile display screen/accessory.`)}`}
+                    href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Assalam-o-Alaikum ${settings.storeName || STORE_NAME}! I am looking for a mobile display screen/accessory.`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm"
@@ -372,7 +372,7 @@ function StorefrontApp() {
                 Verified Displays & Screen Replacements
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Connect directly with SAAD TRADING COMPANY on WhatsApp to verify display model compatibility, check bulk wholesale rates, or place express retail orders.
+                Connect directly with {settings.storeName || STORE_NAME} on WhatsApp to verify display model compatibility, check bulk wholesale rates, or place express retail orders.
               </p>
             </div>
 
@@ -396,7 +396,7 @@ function StorefrontApp() {
 
             <div className="text-center lg:text-right space-y-2">
               <a
-                href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Assalam-o-Alaikum ${settings.storeName || 'SAAD TRADING COMPANY'}! I am interested in placing an order for mobile screens.`)}`}
+                href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Assalam-o-Alaikum ${settings.storeName || STORE_NAME}! I am interested in placing an order for mobile screens.`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider shadow-sm transition-all"
